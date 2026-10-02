@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Walk with Regi — Admin Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config={
+  darkMode:'class',
+  theme:{
+    extend:{
+      fontFamily:{
+        sans:['Inter','sans-serif'],
+        display:['Plus Jakarta Sans','sans-serif']
+      },
+      colors:{
+        brand:{
+          orange:'#FF6B35',
+          teal:'#0FB5B1',
+          dark:'#0B0F1A',
+          muted:'#F1F5F9'
+        }
+      },
+      boxShadow:{
+        soft:'0 8px 32px rgba(0,0,0,0.06)',
+        card:'0 4px 24px rgba(15,23,42,0.06)'
+      }
+    }
+  }
+}
+</script>
+<style>
+*{scrollbar-width:thin; scrollbar-color:#CBD5E1 transparent}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:999px}
+::-webkit-scrollbar-track{background:transparent}
+.dark ::-webkit-scrollbar-thumb{background:#334155}
+.glass{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.animate-in{animation:slideIn .35s cubic-bezier(.16,1,.3,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.shimmer{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 37%,#f1f5f9 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.switch{position:relative;width:44px;height:26px;background:#E2E8F0;border-radius:999px;transition:.2s;cursor:pointer}
+.switch.active{background:#0FB5B1}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:.2s}
+.switch.active::after{transform:translateX(18px)}
+</style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 antialiased selection:bg-orange-100 dark:bg-[#0B0F1A] dark:text-slate-100 transition-colors">
+<div id="app" class="flex min-h-screen">
+<!-- Mobile overlay -->
+<div id="overlay" class="fixed inset-0 bg-slate-900/50 z-30 hidden lg:hidden backdrop-blur-sm"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-[288px] bg-[#0B0F1A] text-white flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-[cubic-bezier(.16,1,.3,1)] shrink-0">
+  <div class="px-7 pt-7 pb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B35] to-[#FF8A3D] flex items-center justify-center shadow-lg shadow-orange-500/20">
+        <i class="ri-bear-smile-fill text-[20px]"></i>
+      </div>
+      <div class="leading-none">
+        <div class="font-display font-extrabold tracking-tight text-[15px]">WALK WITH REGI</div>
+        <div class="text-[10px] tracking-[0.18em] text-white/50 font-bold mt-1">ADMIN HUB • V2.4</div>
+      </div>
+      <button id="closeSidebar" class="lg:hidden ml-auto w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><i class="ri-close-line"></i></button>
+    </div>
+  </div>
+
+  <nav class="px-3 flex-1 space-y-1 overflow-y-auto">
+    <button data-view="dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-semibold bg-white text-slate-900 shadow-sm">
+      <i class="ri-dashboard-line text-[18px]"></i> Dashboard Overview
+      <span class="ml-auto w-1.5 h-1.5 rounded-full bg-[#FF6B35]"></span>
+    </button>
+    <button data-view="orders" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-medium text-white/70 hover:bg-white/10 hover:text-white transition">
+      <i class="ri-shopping-bag-3-line text-[18px]"></i> Orders <span class="ml-auto bg-[#FF6B35] text-white text-[11px] font-bold px-2 py-0.5 rounded-full" id="navOrderCount">12</span>
+    </button>
+    <button data-view="products" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-medium text-white/70 hover:bg-white/10 hover:text-white transition">
+      <i class="ri-box-3-line text-[18px]"></i> Product Management
+    </button>
+    <button data-view="analytics" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-medium text-white/70 hover:bg-white/10 hover:text-white transition">
+      <i class="ri-bar-chart-line text-[18px]"></i> Customer Analytics
+    </button>
+    <button data-view="settings" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-medium text-white/70 hover:bg-white/10 hover:text-white transition">
+      <i class="ri-settings-3-line text-[18px]"></i> Settings
+    </button>
+
+    <div class="pt-6 pb-3">
+      <p class="px-4 text-[10px] font-bold tracking-[0.16em] text-white/30">TOOLS</p>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-white/60 hover:text-white"><i class="ri-store-2-line"></i> Storefront Preview <i class="ri-external-link-line ml-auto text-xs opacity-50"></i></a>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-white/60 hover:text-white"><i class="ri-customer-service-2-line"></i> Support Center</a>
+    </div>
+  </nav>
+
+  <div class="p-3">
+    <div class="rounded-2xl bg-gradient-to-br from-[#FF6B35] to-[#FF8A3D] p-4 relative overflow-hidden">
+      <div class="absolute -right-6 -top-6 w-20 h-20 bg-white/15 rounded-full blur-xl"></div>
+      <div class="relative">
+        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#FF6B35]"><i class="ri-flashlight-line"></i></div>
+        <h4 class="font-bold text-sm mt-3 leading-tight">Need a hand, Regi?</h4>
+        <p class="text-xs text-white/80 mt-1 leading-relaxed">Explore our new automation for walk scheduling.</p>
+        <button class="mt-3 bg-white text-slate-900 text-xs font-bold px-3 py-2 rounded-full">View updates</button>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 px-2 py-4 mt-2">
+      <img src="https://i.pravatar.cc/100?img=33" class="w-8 h-8 rounded-full object-cover">
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold leading-none">Alex Morgan</div>
+        <div class="text-xs text-white/50">Owner • Regi's Crew</div>
+      </div>
+      <button class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><i class="ri-more-2-fill text-white/70"></i></button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="flex-1 flex flex-col min-w-0 max-w-full">
+  <!-- TOPBAR -->
+  <header class="h-[72px] bg-white dark:bg-[#111827] border-b border-slate-200/70 dark:border-slate-800 sticky top-0 z-20 flex items-center gap-3 px-4 lg:px-8 shrink-0">
+    <button id="openSidebar" class="lg:hidden w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center"><i class="ri-menu-line text-lg"></i></button>
+    
+    <div class="relative flex-1 max-w-[560px] hidden md:block">
+      <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+      <input id="globalSearch" placeholder="Search orders, products, customers..." class="w-full h-10 pl-10 pr-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-full text-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-300 transition">
+      <span class="hidden lg:flex absolute right-1.5 top-1.5 items-center gap-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-full px-2.5 py-1 text-[11px] font-semibold text-slate-500"><span class="w-4 h-4 grid place-items-center bg-slate-100 dark:bg-slate-600 rounded text-[10px]">⌘</span>K</span>
+    </div>
+
+    <div class="flex items-center gap-2 ml-auto">
+      <button id="themeToggle" class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center hover:bg-slate-50 transition"><i class="ri-sun-line dark:hidden"></i><i class="ri-moon-line hidden dark:block"></i></button>
+      
+      <div class="relative">
+        <button id="notifBtn" class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center relative hover:bg-slate-50 transition">
+          <i class="ri-notification-3-line text-slate-600 dark:text-slate-300"></i>
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] text-white text-[11px] font-bold grid place-items-center rounded-full border-2 border-white dark:border-[#111827]">3</span>
+        </button>
+        <div id="notifPanel" class="hidden absolute right-0 mt-3 w-[360px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-in">
+          <div class="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-700">
+            <h4 class="font-bold text-sm">Notifications</h4><span class="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full font-bold">3 new</span>
+          </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            <div class="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+              <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 grid place-items-center shrink-0"><i class="ri-shopping-bag-line"></i></div>
+              <div><p class="text-sm font-medium">New order #38492 just arrived</p><p class="text-xs text-slate-500">2 minutes ago • $127.50</p></div>
+            </div>
+            <div class="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+              <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 grid place-items-center shrink-0"><i class="ri-alarm-warning-line"></i></div>
+              <div><p class="text-sm font-medium">Low stock: Trail Leash - Sunset</p><p class="text-xs text-slate-500">18 minutes ago • 4 units left</p></div>
+            </div>
+            <div class="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+              <div class="w-8 h-8 rounded-full bg-teal-50 text-teal-600 grid place-items-center shrink-0"><i class="ri-user-follow-line"></i></div>
+              <div><p class="text-sm font-medium">New customer: Sarah J. joined</p><p class="text-xs text-slate-500">1 hour ago</p></div>
+            </div>
+          </div>
+          <button class="w-full py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50">View all notifications</button>
+        </div>
+      </div>
+
+      <div class="hidden sm:flex items-center gap-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1">
+        <span class="text-xs font-bold px-3 text-slate-600 dark:text-slate-300">Live</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs font-medium pr-2 text-slate-500">Storefront sync</span>
+      </div>
+
+      <div class="relative">
+        <button id="profileBtn" class="flex items-center gap-3 pl-1 pr-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 transition">
+          <img src="https://i.pravatar.cc/100?img=33" class="w-8 h-8 rounded-full object-cover">
+          <span class="hidden lg:block text-sm font-semibold">Alex</span>
+          <i class="ri-arrow-down-s-line text-slate-400"></i>
+        </button>
+        <div id="profilePanel" class="hidden absolute right-0 mt-3 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-in">
+          <div class="p-4 flex gap-3">
+            <img src="https://i.pravatar.cc/100?img=33" class="w-10 h-10 rounded-full">
+            <div><div class="text-sm font-bold">Alex Morgan</div><div class="text-xs text-slate-500">admin@walkwithregi.co</div></div>
+          </div>
+          <div class="h-px bg-slate-100 dark:bg-slate-700"></div>
+          <div class="p-2 space-y-1">
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm"><i class="ri-user-3-line"></i> Profile</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm"><i class="ri-team-line"></i> Team</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-red-600"><i class="ri-logout-box-line"></i> Sign out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="flex-1 overflow-y-auto bg-[#F8FAFC] dark:bg-[#0B0F1A] p-4 lg:p-8">
+    
+    <!-- DASHBOARD VIEW -->
+    <section id="view-dashboard" class="space-y-6 max-w-[1440px] mx-auto">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 class="font-display text-[28px] font-extrabold tracking-tight leading-none">Good morning, Alex <span class="inline-block">👋</span></h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Here's what's happening with Regi's pack today. <span class="text-[#0FB5B1] font-semibold">Live data synced 12s ago.</span></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="hidden sm:flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1">
+            <button class="px-4 py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold">Weekly</button>
+            <button class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-500">Monthly</button>
+            <button class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-500">Yearly</button>
+          </div>
+          <button class="h-10 px-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold flex items-center gap-2"><i class="ri-download-2-line"></i> Export</button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- Revenue -->
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-5 shadow-card">
+          <div class="flex items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-[#FF6B35] grid place-items-center"><i class="ri-exchange-dollar-line text-xl"></i></div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 flex items-center gap-1"><i class="ri-arrow-right-up-line"></i> +12.5%</span>
+          </div>
+          <div class="mt-4">
+            <p class="text-xs font-bold tracking-widest text-slate-400">TOTAL REVENUE</p>
+            <p class="text-[26px] font-extrabold tracking-tight mt-1">$42,890<span class="text-slate-400 font-semibold text-lg">.00</span></p>
+            <p class="text-xs text-slate-500 mt-1">vs $38.1k last week</p>
+          </div>
+          <svg class="mt-4 w-full h-[36px]" viewBox="0 0 200 36" fill="none"><path d="M0 26 C20 20 40 30 60 18 C80 6 100 22 130 12 C160 2 180 14 200 8" stroke="#FF6B35" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M0 26 C20 20 40 30 60 18 C80 6 100 22 130 12 C160 2 180 14 200 8 L200 36 L0 36 Z" fill="url(#g1)" opacity="0.12"/><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FF6B35"/><stop offset="1" stop-color="#FF6B35" stop-opacity="0"/></linearGradient></defs></svg>
+        </div>
+        <!-- Orders -->
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-5 shadow-card">
+          <div class="flex items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 grid place-items-center"><i class="ri-shopping-bag-3-line text-xl"></i></div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 flex items-center gap-1"><i class="ri-arrow-right-up-line"></i> +8.2%</span>
+          </div>
+          <div class="mt-4">
+            <p class="text-xs font-bold tracking-widest text-slate-400">TOTAL ORDERS</p>
+            <p class="text-[26px] font-extrabold tracking-tight mt-1">1,248</p>
+            <p class="text-xs text-slate-500 mt-1"><span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 24 new today</span></p>
+          </div>
+          <svg class="mt-4 w-full h-[36px]" viewBox="0 0 200 36" fill="none"><path d="M0 28 C30 28 50 10 80 16 C110 22 130 26 150 14 C170 4 185 10 200 12" stroke="#0F172A" stroke-width="2.5" stroke-linecap="round" class="dark:stroke-white"/><path d="M0 28 C30 28 50 10 80 16 C110 22 130 26 150 14 C170 4 185 10 200 12 L200 36 L0 36 Z" fill="#0F172A" opacity="0.06" class="dark:fill-white"/></svg>
+        </div>
+        <!-- Customers -->
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-5 shadow-card">
+          <div class="flex items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-500/10 text-[#0FB5B1] grid place-items-center"><i class="ri-team-line text-xl"></i></div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 flex items-center gap-1"><i class="ri-arrow-right-up-line"></i> +4.1%</span>
+          </div>
+          <div class="mt-4">
+            <p class="text-xs font-bold tracking-widest text-slate-400">ACTIVE CUSTOMERS</p>
+            <p class="text-[26px] font-extrabold tracking-tight mt-1">892</p>
+            <p class="text-xs text-slate-500 mt-1">124 returning this week</p>
+          </div>
+          <div class="mt-4 flex items-end gap-1 h-[36px]">
+            <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-t-lg" style="height:45%"></div>
+            <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-t-lg" style="height:65%"></div>
+            <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-t-lg" style="height:50%"></div>
+            <div class="flex-1 bg-[#0FB5B1] rounded-t-lg" style="height:85%"></div>
+            <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-t-lg" style="height:60%"></div>
+            <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-t-lg" style="height:75%"></div>
+            <div class="flex-1 bg-slate-100 dark:bg-slate-700 rounded-t-lg" style="height:55%"></div>
+          </div>
+        </div>
+        <!-- Low Stock -->
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-amber-200/50 dark:border-amber-900/30 p-5 shadow-card relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 dark:bg-amber-500/5 rounded-full blur-2xl -mr-8 -mt-8"></div>
+          <div class="flex items-start justify-between relative">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 grid place-items-center"><i class="ri-alarm-warning-line text-xl"></i></div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500 text-white">Action needed</span>
+          </div>
+          <div class="mt-4 relative">
+            <p class="text-xs font-bold tracking-widest text-slate-400">LOW STOCK ALERTS</p>
+            <p class="text-[26px] font-extrabold tracking-tight mt-1">7 <span class="text-sm font-semibold text-slate-500">items</span></p>
+            <p class="text-xs text-amber-600 font-medium mt-1">2 critically low</p>
+          </div>
+          <button onclick="switchView('products')" class="mt-4 w-full h-9 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold">Restock now →</button>
+        </div>
+      </div>
+
+      <!-- CHART + SIDE -->
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div class="xl:col-span-2 bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 class="font-display font-bold text-[16px]">Revenue Performance</h3>
+              <p class="text-xs text-slate-500">Weekly sales • Mon - Sun • All channels</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center gap-2 text-xs font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-[#FF6B35]"></span> This week</span>
+              <span class="flex items-center gap-2 text-xs font-semibold text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span> Last week</span>
+              <select id="chartRange" class="h-8 rounded-full border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 px-3 text-xs font-semibold">
+                <option>Weekly</option><option>Monthly</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-6 h-[260px] relative">
+            <canvas id="salesChart"></canvas>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
+            <div><p class="text-xs font-bold tracking-widest text-slate-400">AVG. ORDER VALUE</p><p class="text-lg font-extrabold mt-1">$84.20 <span class="text-xs font-bold text-emerald-600">+3.4%</span></p></div>
+            <div><p class="text-xs font-bold tracking-widest text-slate-400">CONVERSION</p><p class="text-lg font-extrabold mt-1">3.42% <span class="text-xs font-bold text-emerald-600">+0.8%</span></p></div>
+            <div><p class="text-xs font-bold tracking-widest text-slate-400">RETURN RATE</p><p class="text-lg font-extrabold mt-1">1.2% <span class="text-xs font-bold text-emerald-600">-0.3%</span></p></div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-sm">Low stock watchlist</h3>
+              <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-600 grid place-items-center text-xs font-bold">7</span>
+            </div>
+            <div class="mt-4 space-y-3">
+              <div class="flex items-center gap-3 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-900/20">
+                <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=200&q=80" class="w-10 h-10 rounded-lg object-cover">
+                <div class="flex-1 min-w-0"><p class="text-sm font-semibold leading-none truncate">Sunset Trail Leash</p><p class="text-xs text-slate-500">SKU: RTL-092 • 4 left</p></div>
+                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-red-500 text-white">CRITICAL</span>
+              </div>
+              <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 border border-transparent hover:border-slate-100">
+                <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=200&q=80" class="w-10 h-10 rounded-lg object-cover">
+                <div class="flex-1 min-w-0"><p class="text-sm font-semibold leading-none truncate">Paw Balm - Organic</p><p class="text-xs text-slate-500">SKU: PB-441 • 9 left</p></div>
+                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-700">LOW</span>
+              </div>
+              <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 border border-transparent hover:border-slate-100">
+                <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=200&q=80" class="w-10 h-10 rounded-lg object-cover">
+                <div class="flex-1 min-w-0"><p class="text-sm font-semibold leading-none truncate">Regi's Biscuit Box</p><p class="text-xs text-slate-500">SKU: RBB-12 • 11 left</p></div>
+                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-700">LOW</span>
+              </div>
+            </div>
+            <button onclick="switchView('products')" class="mt-4 w-full h-10 rounded-full border border-slate-200 dark:border-slate-600 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-700">Manage inventory</button>
+          </div>
+
+          <div class="bg-[#0B0F1A] rounded-[20px] p-6 text-white relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-[#0FB5B1]/20 rounded-full blur-2xl"></div>
+            <div class="relative">
+              <div class="w-10 h-10 rounded-xl bg-white/10 grid place-items-center"><i class="ri-flashlight-line text-lg"></i></div>
+              <h4 class="font-display font-bold mt-4">Today's pack walks</h4>
+              <p class="text-sm text-white/60 mt-1">14 walks scheduled • 3 in progress</p>
+              <div class="mt-4 space-y-2.5">
+                <div class="flex items-center gap-3 bg-white/10 rounded-xl p-2.5">
+                  <img src="https://i.pravatar.cc/100?img=12" class="w-8 h-8 rounded-full"><div class="flex-1"><p class="text-sm font-semibold leading-none">Milo & Bella</p><p class="text-xs text-white/60">10:30 AM • Park Loop</p></div><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </div>
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-2.5">
+                  <img src="https://i.pravatar.cc/100?img=18" class="w-8 h-8 rounded-full"><div class="flex-1"><p class="text-sm font-semibold leading-none">Cooper</p><p class="text-xs text-white/60">11:15 AM • Riverside</p></div><span class="text-xs text-white/50">Upcoming</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders Mini -->
+      <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 shadow-card overflow-hidden">
+        <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-700">
+          <h3 class="font-bold">Recent live orders</h3>
+          <button onclick="switchView('orders')" class="text-sm font-semibold text-[#FF6B35] hover:underline">View all orders →</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-xs font-bold tracking-widest text-slate-400 bg-slate-50/60 dark:bg-slate-900/30">
+              <tr><th class="text-left px-6 py-3">ORDER</th><th class="text-left px-6 py-3">CUSTOMER</th><th class="text-left px-6 py-3">ITEMS</th><th class="text-left px-6 py-3">TOTAL</th><th class="text-left px-6 py-3">STATUS</th></tr>
+            </thead>
+            <tbody id="miniOrders" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORDERS VIEW -->
+    <section id="view-orders" class="hidden space-y-4 max-w-[1440px] mx-auto">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="font-display text-[26px] font-extrabold tracking-tight">Live Storefront Orders</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time feed from walkwithregi.co • Auto-sync every 8 seconds <span class="inline-flex items-center gap-1 ml-2 text-emerald-600 font-semibold"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live</span></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="h-10 px-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold flex items-center gap-2"><i class="ri-download-line"></i> Export CSV</button>
+          <button class="h-10 px-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold flex items-center gap-2"><i class="ri-refresh-line"></i> Sync now</button>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 shadow-card overflow-hidden">
+        <div class="p-4 flex flex-wrap items-center gap-3 border-b border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-2 overflow-x-auto">
+            <button data-filter="all" class="orderFilter active px-4 py-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold">All orders</button>
+            <button data-filter="Pending" class="orderFilter px-4 py-2 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold">Pending</button>
+            <button data-filter="Processing" class="orderFilter px-4 py-2 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold">Processing</button>
+            <button data-filter="Dispatched" class="orderFilter px-4 py-2 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold">Dispatched</button>
+            <button data-filter="Completed" class="orderFilter px-4 py-2 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold">Completed</button>
+          </div>
+          <div class="ml-auto flex items-center gap-2 w-full sm:w-auto">
+            <div class="relative flex-1 sm:w-[280px]">
+              <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input id="orderSearch" placeholder="Search Order ID or customer..." class="w-full h-10 pl-9 pr-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-100">
+            </div>
+            <button class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 grid place-items-center bg-white dark:bg-slate-800"><i class="ri-equalizer-line"></i></button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm min-w-[900px]">
+            <thead class="text-[11px] font-bold tracking-widest text-slate-400 bg-slate-50/70 dark:bg-slate-900/40">
+              <tr>
+                <th class="text-left px-6 py-3"><input type="checkbox" class="rounded"></th>
+                <th class="text-left px-2 py-3">ORDER ID</th>
+                <th class="text-left px-2 py-3">CUSTOMER</th>
+                <th class="text-left px-2 py-3">TIMESTAMP</th>
+                <th class="text-left px-2 py-3">ITEMS ORDERED</th>
+                <th class="text-left px-2 py-3">TOTAL</th>
+                <th class="text-left px-2 py-3">STATUS</th>
+                <th class="text-right px-6 py-3">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+          </table>
+        </div>
+
+        <div class="px-6 py-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-700 text-sm">
+          <p class="text-slate-500">Showing <span id="orderCount" class="font-bold text-slate-900 dark:text-white">0</span> orders</p>
+          <div class="flex items-center gap-2">
+            <button class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 grid place-items-center"><i class="ri-arrow-left-s-line"></i></button>
+            <span class="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 grid place-items-center font-bold text-sm">1</span>
+            <button class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 grid place-items-center"><i class="ri-arrow-right-s-line"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTS VIEW -->
+    <section id="view-products" class="hidden space-y-4 max-w-[1440px] mx-auto">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="font-display text-[26px] font-extrabold tracking-tight">Product Management</h1>
+          <p class="text-sm text-slate-500 mt-1">Manage storefront inventory • <span id="productCount" class="font-bold text-slate-900 dark:text-white">6</span> products • 2 variants</p>
+        </div>
+        <button id="openProductModal" class="h-11 px-6 rounded-full bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-orange-500/20 transition">
+          <i class="ri-add-line text-lg"></i> Add New Product
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 grid place-items-center"><i class="ri-box-3-line"></i></div>
+          <div><p class="text-xs font-bold tracking-widest text-slate-400">TOTAL SKUS</p><p class="text-xl font-extrabold" id="statSkus">24</p></div>
+          <span class="ml-auto text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+3 this week</span>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 grid place-items-center"><i class="ri-error-warning-line"></i></div>
+          <div><p class="text-xs font-bold tracking-widest text-slate-400">LOW STOCK</p><p class="text-xl font-extrabold">7 items</p></div>
+          <span class="ml-auto text-xs font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">Needs attention</span>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 grid place-items-center"><i class="ri-eye-line"></i></div>
+          <div><p class="text-xs font-bold tracking-widest text-slate-400">VIEWS TODAY</p><p class="text-xl font-extrabold">2,431</p></div>
+          <span class="ml-auto text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">+12%</span>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 shadow-card overflow-hidden">
+        <div class="p-4 flex flex-wrap items-center gap-3 border-b border-slate-100 dark:border-slate-700">
+          <div class="relative flex-1 max-w-md">
+            <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="productSearch" placeholder="Search products, SKU, category..." class="w-full h-10 pl-9 pr-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full text-sm">
+          </div>
+          <div class="flex items-center gap-2 ml-auto">
+            <select class="h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-semibold"><option>All categories</option><option>Leashes</option><option>Care</option><option>Food</option></select>
+            <div class="flex bg-slate-100 dark:bg-slate-700 rounded-full p-1">
+              <button id="gridViewBtn" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center"><i class="ri-layout-grid-line text-sm"></i></button>
+              <button id="listViewBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-500"><i class="ri-list-check text-sm"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4"></div>
+        <div id="productList" class="hidden overflow-x-auto">
+          <table class="w-full text-sm min-w-[700px]">
+            <thead class="text-xs font-bold tracking-widest text-slate-400 bg-slate-50/60 dark:bg-slate-900/30"><tr><th class="text-left px-6 py-3">PRODUCT</th><th class="text-left px-2 py-3">SKU</th><th class="text-left px-2 py-3">PRICE</th><th class="text-left px-2 py-3">STOCK</th><th class="text-right px-6 py-3">ACTIONS</th></tr></thead>
+            <tbody id="productListBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS VIEW -->
+    <section id="view-analytics" class="hidden space-y-6 max-w-[1440px] mx-auto">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div><h1 class="font-display text-[26px] font-extrabold tracking-tight">Customer Analytics</h1><p class="text-sm text-slate-500 mt-1">Understand your pack • Retention, LTV, and breed preferences</p></div>
+        <button class="h-10 px-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold">Last 30 days <i class="ri-arrow-down-s-line ml-1"></i></button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+          <h3 class="font-bold">Customer growth</h3><p class="text-xs text-slate-500">New vs returning</p>
+          <div class="h-[200px] mt-4"><canvas id="customerChart"></canvas></div>
+          <div class="grid grid-cols-2 gap-3 mt-4">
+            <div class="rounded-xl bg-slate-50 dark:bg-slate-900 p-3"><p class="text-xs font-bold text-slate-400">NEW</p><p class="text-lg font-extrabold">142 <span class="text-xs text-emerald-600">+9%</span></p></div>
+            <div class="rounded-xl bg-slate-50 dark:bg-slate-900 p-3"><p class="text-xs font-bold text-slate-400">RETURNING</p><p class="text-lg font-extrabold">89%</p></div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+          <h3 class="font-bold">Top customers</h3>
+          <div class="mt-4 space-y-3" id="topCustomers"></div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+          <h3 class="font-bold">Breed preferences</h3><p class="text-xs text-slate-500">Most walked & shopped</p>
+          <div class="h-[180px] mt-4"><canvas id="breedChart"></canvas></div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#FF6B35]"></span> Labrador</span><span class="font-bold">32%</span></div>
+            <div class="flex justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#0FB5B1]"></span> Golden Retriever</span><span class="font-bold">24%</span></div>
+            <div class="flex justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-300"></span> French Bulldog</span><span class="font-bold">18%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 shadow-card overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between"><h3 class="font-bold">Cohort retention</h3><span class="text-xs font-bold px-2 py-1 rounded-full bg-emerald-50 text-emerald-600">Healthy  •  68% 30d</span></div>
+        <div class="overflow-x-auto"><table class="w-full text-sm min-w-[700px]"><thead class="text-xs font-bold tracking-widest text-slate-400 bg-slate-50/60 dark:bg-slate-900/30"><tr><th class="px-6 py-3 text-left">COHORT</th><th class="px-3 py-3">WEEK 0</th><th class="px-3 py-3">WEEK 1</th><th class="px-3 py-3">WEEK 2</th><th class="px-3 py-3">WEEK 4</th></tr></thead><tbody class="divide-y divide-slate-100 dark:divide-slate-700"><tr><td class="px-6 py-3 font-semibold">Apr 1 - 7 • 84 customers</td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-slate-900 text-white text-xs font-bold">100%</span></td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-emerald-500 text-white text-xs font-bold">72%</span></td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-emerald-400 text-white text-xs font-bold">68%</span></td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-amber-400 text-white text-xs font-bold">54%</span></td></tr><tr><td class="px-6 py-3 font-semibold">Apr 8 - 14 • 102 customers</td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-slate-900 text-white text-xs font-bold">100%</span></td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-emerald-500 text-white text-xs font-bold">74%</span></td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-emerald-400 text-white text-xs font-bold">64%</span></td><td class="px-3 py-3"><span class="px-2 py-1 rounded bg-slate-200 text-slate-600 text-xs font-bold">—</span></td></tr></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="hidden max-w-[1440px] mx-auto">
+      <h1 class="font-display text-[26px] font-extrabold tracking-tight">Settings</h1>
+      <p class="text-sm text-slate-500 mt-1">Manage storefront, team and operational preferences</p>
+      <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 mt-6">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 p-2 h-fit">
+          <button class="w-full text-left px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-sm">General</button>
+          <button class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">Storefront</button>
+          <button class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">Notifications</button>
+          <button class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">Team & Permissions</button>
+          <button class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">Billing</button>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+            <h3 class="font-bold">Store profile</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <label class="space-y-1.5"><span class="text-xs font-bold tracking-widest text-slate-500">STORE NAME</span><input value="Walk with Regi" class="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium"></label>
+              <label class="space-y-1.5"><span class="text-xs font-bold tracking-widest text-slate-500">CONTACT EMAIL</span><input value="hello@walkwithregi.co" class="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"></label>
+              <label class="space-y-1.5 md:col-span-2"><span class="text-xs font-bold tracking-widest text-slate-500">ABOUT</span><textarea rows="3" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm">Premium dog walking & curated pet goods. We walk, we care, we deliver joy — every trail, every tail.</textarea></label>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-slate-800 rounded-[20px] border border-slate-200/60 dark:border-slate-700 p-6 shadow-card">
+            <h3 class="font-bold">Preferences</h3>
+            <div class="mt-4 space-y-4">
+              <div class="flex items-center justify-between py-2"><div><p class="text-sm font-semibold">Auto-sync storefront orders</p><p class="text-xs text-slate-500">Pull new purchases every 15 seconds</p></div><div class="switch active" onclick="this.classList.toggle('active')"></div></div>
+              <div class="flex items-center justify-between py-2"><div><p class="text-sm font-semibold">Low stock email alerts</p><p class="text-xs text-slate-500">Notify when stock &lt; 10 units</p></div><div class="switch active" onclick="this.classList.toggle('active')"></div></div>
+              <div class="flex items-center justify-between py-2"><div><p class="text-sm font-semibold">Enable dark mode by default</p><p class="text-xs text-slate-500">For all team members</p></div><div class="switch" onclick="this.classList.toggle('active')"></div></div>
+            </div>
+            <button class="mt-6 h-11 px-6 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div id="productModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="productModalBackdrop"></div>
+  <div class="relative min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-[24px] w-full max-w-[720px] shadow-2xl animate-in overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between shrink-0">
+        <div><h3 id="productModalTitle" class="font-display font-bold text-lg">Add New Product</h3><p class="text-xs text-slate-500">Add to storefront • Visible after publish</p></div>
+        <button id="closeProductModal" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 grid place-items-center hover:bg-slate-200"><i class="ri-close-line text-lg"></i></button>
+      </div>
+      <form id="productForm" class="overflow-y-auto p-6 space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="space-y-1.5"><span class="text-xs font-bold tracking-widest text-slate-500">PRODUCT NAME *</span><input required name="name" placeholder="e.g., Sunset Trail Leash" class="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-4 focus:ring-orange-100 focus:border-orange-300 outline-none"></label>
+          <label class="space-y-1.5"><span class="text-xs font-bold tracking-widest text-slate-500">SKU *</span><input required name="sku" placeholder="e.g., RTL-093" class="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"></label>
+          <label class="space-y-1.5"><span class="text-xs font-bold tracking-widest text-slate-500">PRICE ($) *</span><input required name="price" type="number" step="0.01" placeholder="42.00" class="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"></label>
+          <label class="space-y-1.5"><span class="text-xs font-bold tracking-widest text-slate-500">STOCK QUANTITY *</span><input required name="stock" type="number" placeholder="120" class="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"></label>
+        </div>
+        <label class="space-y-1.5 block"><span class="text-xs font-bold tracking-widest text-slate-500">DESCRIPTION</span><textarea name="desc" rows="3" placeholder="Tell customers about materials, fit, and care..." class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"></textarea></label>
+        
+        <!-- Drag & Drop -->
+        <div>
+          <p class="text-xs font-bold tracking-widest text-slate-500 mb-2">PRODUCT PHOTOS</p>
+          <div id="dropZone" class="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-600 bg-slate-50/60 dark:bg-slate-900/40 p-6 text-center hover:border-[#FF6B35]/40 hover:bg-orange-50/40 transition cursor-pointer group">
+            <div class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 grid place-items-center mx-auto shadow-sm group-hover:scale-105 transition"><i class="ri-image-add-line text-xl text-slate-500"></i></div>
+            <p class="text-sm font-semibold mt-3">Drag & drop images here</p>
+            <p class="text-xs text-slate-500 mt-1">or <span class="text-[#FF6B35] font-bold">browse files</span> • PNG, JPG up to 8MB • Up to 6 images</p>
+            <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
+          </div>
+          <div id="previewGrid" class="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-3"></div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="button" id="cancelProduct" class="flex-1 h-11 rounded-full border border-slate-200 dark:border-slate-600 font-bold text-sm">Cancel</button>
+          <button type="submit" class="flex-1 h-11 rounded-full bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold text-sm shadow-lg shadow-orange-500/20">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div id="orderModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="orderModalBackdrop"></div>
+  <div class="relative min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-[24px] w-full max-w-[560px] shadow-2xl animate-in overflow-hidden">
+      <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <div><h3 class="font-display font-bold text-lg" id="orderModalTitle">Order #38492</h3><p class="text-xs text-slate-500" id="orderModalSub">Placed 2 minutes ago</p></div>
+        <button id="closeOrderModal" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 grid place-items-center"><i class="ri-close-line"></i></button>
+      </div>
+      <div id="orderModalBody" class="p-6 space-y-4"></div>
+      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 flex items-center gap-3">
+        <button onclick="printInvoice()" class="flex-1 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-semibold text-sm flex items-center justify-center gap-2"><i class="ri-printer-line"></i> Print Invoice</button>
+        <button id="orderStatusBtn" class="flex-1 h-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm">Update Status</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+<script>
+const orders = [
+  {id:'38492', customer:'Emma Wilson', avatar:'https://i.pravatar.cc/100?img=5', email:'emma.wilson@mail.com', time:'2 min ago', ts: Date.now()-120000, items:[{name:"Trail Leash - Sunset", qty:1, price:42},{name:"Paw Balm", qty:2, price:18}], total:127.50, status:'Pending'},
+  {id:'38491', customer:'James Carter', avatar:'https://i.pravatar.cc/100?img=14', email:'james.c@mail.com', time:'18 min ago', ts: Date.now()-1080000, items:[{name:"Regi's Biscuit Box", qty:1, price:28},{name:"Chewy Rope", qty:1, price:22}], total:50.00, status:'Processing'},
+  {id:'38490', customer:'Sofia Reyes', avatar:'https://i.pravatar.cc/100?img=9', email:'sofia.r@mail.com', time:'42 min ago', ts: Date.now()-2520000, items:[{name:"Water Bottle - Teal", qty:1, price:34}], total:34.00, status:'Dispatched'},
+  {id:'38489', customer:'Liam Okafor', avatar:'https://i.pravatar.cc/100?img=15', email:'liam.o@mail.com', time:'1 hr ago', ts: Date.now()-3600000, items:[{name:"Harness - Midnight", qty:1, price:68}], total:68.00, status:'Completed'},
+  {id:'38488', customer:'Ava Patel', avatar:'https://i.pravatar.cc/100?img=26', email:'ava.p@mail.com', time:'2 hr ago', ts: Date.now()-7200000, items:[{name:"Trail Leash - Forest", qty:2, price:42}], total:84.00, status:'Pending'},
+  {id:'38487', customer:'Noah Kim', avatar:'https://i.pravatar.cc/100?img=7', email:'noah.k@mail.com', time:'3 hr ago', ts: Date.now()-10800000, items:[{name:"Bandana - Citrus", qty:3, price:16}], total:48.00, status:'Processing'},
+  {id:'38486', customer:'Mia Torres', avatar:'https://i.pravatar.cc/100?img=32', email:'mia.t@mail.com', time:'5 hr ago', ts: Date.now()-18000000, items:[{name:"Bed - Cloud", qty:1, price:149}], total:149.00, status:'Completed'},
+  {id:'38485', customer:'Ethan Brooks', avatar:'https://i.pravatar.cc/100?img=11', email:'ethan.b@mail.com', time:'Yesterday', ts: Date.now()-86400000, items:[{name:"Paw Balm", qty:1, price:18},{name:"Biscuit Box", qty:1, price:28}], total:46.00, status:'Dispatched'},
+];
+
+let products = [
+  {id:1, name:"Sunset Trail Leash", sku:"RTL-092", price:42, stock:4, cat:"Leashes", img:"https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&q=80", desc:"Hand-braided rope with reflective stitching."},
+  {id:2, name:"Paw Balm - Organic", sku:"PB-441", price:18, stock:9, cat:"Care", img:"https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80", desc:"Nourishing balm for cracked paws."},
+  {id:3, name:"Regi's Biscuit Box", sku:"RBB-12", price:28, stock:11, cat:"Food", img:"https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&q=80", desc:"Grain-free biscuits, peanut butter flavor."},
+  {id:4, name:"Harness - Midnight", sku:"HRN-08", price:68, stock:32, cat:"Leashes", img:"https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&q=80", desc:"No-pull harness with breathable mesh."},
+  {id:5, name:"Water Bottle - Teal", sku:"WB-TL01", price:34, stock:54, cat:"Accessories", img:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=80", desc:"2-in-1 bottle & bowl for trails."},
+  {id:6, name:"Bandana - Citrus Pop", sku:"BND-CT02", price:16, stock:87, cat:"Accessories", img:"https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?w=400&q=80", desc:"Lightweight, quick-dry bandana."},
+];
+
+let currentFilter='all';
+let currentOrderSearch='';
+let selectedOrderId=null;
+let editingProductId=null;
+let uploadedImages=[];
+
+// helpers
+const statusStyles = {
+  Pending:'bg-amber-100 text-amber-700 border-amber-200',
+  Processing:'bg-sky-100 text-sky-700 border-sky-200',
+  Dispatched:'bg-violet-100 text-violet-700 border-violet-200',
+  Completed:'bg-emerald-100 text-emerald-700 border-emerald-200'
+};
+function statusDot(s){return {Pending:'bg-amber-500', Processing:'bg-sky-500', Dispatched:'bg-violet-500', Completed:'bg-emerald-500'}[s]}
+
+function toast(msg, type='success'){
+  const c=document.getElementById('toastContainer');
+  const el=document.createElement('div');
+  el.className='pointer-events-auto bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-medium animate-in min-w-[300px]';
+  el.innerHTML=`<span class="w-8 h-8 rounded-full ${type==='success'?'bg-emerald-500':'bg-orange-500'} grid place-items-center text-white shrink-0"><i class="${type==='success'?'ri-check-line':'ri-information-line'}"></i></span> <span class="flex-1">${msg}</span> <button onclick="this.parentElement.remove()" class="text-white/60">✕</button>`;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+function switchView(view){
+  document.querySelectorAll('[id^="view-"]').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('view-'+view).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    const isActive=b.dataset.view===view;
+    b.className=isActive ? 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-semibold bg-white text-slate-900 shadow-sm' : 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13.5px] font-medium text-white/70 hover:bg-white/10 hover:text-white transition';
+    if(isActive) b.innerHTML=b.innerHTML.replace(/<span class="ml-auto[^>]*>.*?<\/span>/,'<span class="ml-auto w-1.5 h-1.5 rounded-full bg-[#FF6B35]"></span>');
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+  // close mobile sidebar
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('overlay').classList.add('hidden');
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
+
+// sidebar mobile
+document.getElementById('openSidebar').onclick=()=>{
+  document.getElementById('sidebar').classList.remove('-translate-x-full');
+  document.getElementById('overlay').classList.remove('hidden');
+}
+document.getElementById('closeSidebar').onclick=()=>{
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('overlay').classList.add('hidden');
+}
+document.getElementById('overlay').onclick=()=>{
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('overlay').classList.add('hidden');
+}
+
+// topbar dropdowns
+document.getElementById('notifBtn').onclick=(e)=>{
+  e.stopPropagation();
+  document.getElementById('notifPanel').classList.toggle('hidden');
+  document.getElementById('profilePanel').classList.add('hidden');
+}
+document.getElementById('profileBtn').onclick=(e)=>{
+  e.stopPropagation();
+  document.getElementById('profilePanel').classList.toggle('hidden');
+  document.getElementById('notifPanel').classList.add('hidden');
+}
+document.addEventListener('click',()=>{
+  document.getElementById('notifPanel').classList.add('hidden');
+  document.getElementById('profilePanel').classList.add('hidden');
+})
+document.getElementById('themeToggle').onclick=()=>{
+  document.documentElement.classList.toggle('dark');
+}
+
+// global search
+document.getElementById('globalSearch').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  if(!q) return;
+  if(q.length>1){
+    // naive: switch to orders if searching order
+    document.getElementById('orderSearch').value=q;
+    currentOrderSearch=q;
+    switchView('orders');
+    renderOrders();
+  }
+});
+
+// ORDERS RENDER
+function renderOrders(){
+  const body=document.getElementById('ordersBody');
+  let filtered=orders.filter(o=>{
+    const matchFilter=currentFilter==='all'||o.status===currentFilter;
+    const q=currentOrderSearch.toLowerCase();
+    const matchSearch=!q || o.id.includes(q) || o.customer.toLowerCase().includes(q) || o.items.some(i=>i.name.toLowerCase().includes(q));
+    return matchFilter && matchSearch;
+  });
+  document.getElementById('orderCount').textContent=filtered.length;
+  document.getElementById('navOrderCount').textContent=orders.length;
+  body.innerHTML=filtered.map(o=>{
+    const itemsText=o.items.map(i=>`${i.qty}× ${i.name}`).join(', ');
+    const itemIcons=o.items.map((_,idx)=>`<span class="w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 grid place-items-center text-[10px] -ml-1 first:ml-0"><i class="ri-shopping-bag-line"></i></span>`).join('');
+    return `<tr class="hover:bg-slate-50/70 dark:hover:bg-slate-700/30 group transition">
+      <td class="px-6 py-4"><input type="checkbox" class="rounded"></td>
+      <td class="px-2 py-4"><span class="font-mono font-bold text-slate-900 dark:text-white">#${o.id}</span></td>
+      <td class="px-2 py-4"><div class="flex items-center gap-3"><img src="${o.avatar}" class="w-8 h-8 rounded-full object-cover"><div><p class="font-semibold leading-none">${o.customer}</p><p class="text-xs text-slate-500">${o.email}</p></div></div></td>
+      <td class="px-2 py-4"><span class="text-slate-600 dark:text-slate-300 font-medium">${o.time}</span><p class="text-xs text-slate-400">${new Date(o.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p></td>
+      <td class="px-2 py-4"><div class="flex items-center gap-1 mb-1">${itemIcons}<span class="ml-2 text-xs font-semibold bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">${o.items.length} items</span></div><p class="text-xs text-slate-500 truncate max-w-[220px]">${itemsText}</p></td>
+      <td class="px-2 py-4 font-bold">$${o.total.toFixed(2)}</td>
+      <td class="px-2 py-4">
+        <div class="relative">
+          <button onclick="toggleStatusDropdown('${o.id}')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${statusStyles[o.status]}">
+            <span class="w-1.5 h-1.5 rounded-full ${statusDot(o.status)}"></span> ${o.status} <i class="ri-arrow-down-s-line"></i>
+          </button>
+          <div id="status-${o.id}" class="hidden absolute left-0 mt-2 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-10">
+            ${['Pending','Processing','Dispatched','Completed'].map(s=>`<button onclick="updateStatus('${o.id}','${s}')" class="w-full text-left px-3 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"><span class="w-2 h-2 rounded-full ${statusDot(s)}"></span> ${s} ${o.status===s?'<i class="ri-check-line ml-auto text-emerald-600"></i>':''}</button>`).join('')}
+          </div>
+        </div>
+      </td>
+      <td class="px-6 py-4">
+        <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100">
+          <button onclick="openOrder('${o.id}')" class="w-8 h-8 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 grid place-items-center hover:bg-slate-50" title="View details"><i class="ri-eye-line text-sm"></i></button>
+          <button onclick="printInvoice('${o.id}')" class="w-8 h-8 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 grid place-items-center hover:bg-slate-50" title="Print invoice"><i class="ri-printer-line text-sm"></i></button>
+          <div class="relative"><button onclick="document.getElementById('more-${o.id}').classList.toggle('hidden')" class="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 grid place-items-center"><i class="ri-more-line text-sm"></i></button>
+          <div id="more-${o.id}" class="hidden absolute right-0 mt-2 w-40 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-10">
+            <button onclick="updateStatus('${o.id}','Completed');document.getElementById('more-${o.id}').classList.add('hidden')" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700">Mark completed</button>
+            <button onclick="toast('Order #${o.id} archived')" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700">Archive</button>
+          </div></div>
+        </div>
+      </td>
+    </tr>`
+  }).join('');
+
+  // mini orders
+  const mini=document.getElementById('miniOrders');
+  if(mini) mini.innerHTML=orders.slice(0,4).map(o=>`<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30"><td class="px-6 py-3 font-mono font-bold">#${o.id}</td><td class="px-6 py-3"><div class="flex items-center gap-2"><img src="${o.avatar}" class="w-6 h-6 rounded-full"><span class="font-medium">${o.customer}</span></div></td><td class="px-6 py-3 text-slate-500 truncate max-w-[160px]">${o.items.map(i=>i.name).join(', ')}</td><td class="px-6 py-3 font-bold">$${o.total.toFixed(2)}</td><td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold border ${statusStyles[o.status]}">${o.status}</span></td></tr>`).join('');
+}
+
+function toggleStatusDropdown(id){
+  document.querySelectorAll('[id^="status-"]').forEach(e=>{ if(e.id!==`status-${id}`) e.classList.add('hidden')});
+  document.getElementById(`status-${id}`).classList.toggle('hidden');
+}
+function updateStatus(id, newStatus){
+  const o=orders.find(x=>x.id===id);
+  if(o){ o.status=newStatus; renderOrders(); toast(`Order #${id} marked as ${newStatus}`); }
+  document.querySelectorAll('[id^="status-"]').forEach(e=>e.classList.add('hidden'));
+}
+document.querySelectorAll('.orderFilter').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.orderFilter').forEach(b=>b.className='orderFilter px-4 py-2 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold');
+    btn.className='orderFilter active px-4 py-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold';
+    currentFilter=btn.dataset.filter;
+    renderOrders();
+  }
+});
+document.getElementById('orderSearch').addEventListener('input',e=>{ currentOrderSearch=e.target.value; renderOrders(); });
+
+// Order modal
+function openOrder(id){
+  const o=orders.find(x=>x.id===id);
+  if(!o) return;
+  selectedOrderId=id;
+  document.getElementById('orderModalTitle').textContent=`Order #${o.id}`;
+  document.getElementById('orderModalSub').textContent=`${o.customer} • ${o.time} • ${o.email}`;
+  document.getElementById('orderModalBody').innerHTML=`
+    <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900">
+      <img src="${o.avatar}" class="w-10 h-10 rounded-full"><div><p class="font-bold">${o.customer}</p><p class="text-xs text-slate-500">${o.email}</p></div>
+      <span class="ml-auto px-3 py-1 rounded-full text-xs font-bold border ${statusStyles[o.status]}">${o.status}</span>
+    </div>
+    <div class="space-y-3">
+      ${o.items.map(i=>`<div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700 last:border-0"><div><p class="font-semibold text-sm">${i.name}</p><p class="text-xs text-slate-500">Qty ${i.qty} • $${i.price.toFixed(2)} each</p></div><span class="font-bold">$${(i.qty*i.price).toFixed(2)}</span></div>`).join('')}
+    </div>
+    <div class="rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-4 flex items-center justify-between">
+      <span class="text-sm font-medium">Total amount</span><span class="text-xl font-extrabold">$${o.total.toFixed(2)}</span>
+    </div>
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3"><p class="text-xs font-bold tracking-widest text-slate-400">PAYMENT</p><p class="text-sm font-bold mt-1">Card •••• 4242</p></div>
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3"><p class="text-xs font-bold tracking-widest text-slate-400">SHIPPING</p><p class="text-sm font-bold mt-1">Express</p></div>
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3"><p class="text-xs font-bold tracking-widest text-slate-400">ADDRESS</p><p class="text-xs mt-1">12 Park Ave, NY</p></div>
+    </div>
+  `;
+  document.getElementById('orderModal').classList.remove('hidden');
+  document.getElementById('orderStatusBtn').onclick=()=>{
+    const idx=['Pending','Processing','Dispatched','Completed'].indexOf(o.status);
+    const next=['Processing','Dispatched','Completed','Completed'][idx]||'Completed';
+    updateStatus(id, next);
+    document.getElementById('orderModal').classList.add('hidden');
+  }
+}
+document.getElementById('closeOrderModal').onclick=()=>document.getElementById('orderModal').classList.add('hidden');
+document.getElementById('orderModalBackdrop').onclick=()=>document.getElementById('orderModal').classList.add('hidden');
+function printInvoice(id){
+  const o=orders.find(x=>x.id===id)||orders.find(x=>x.id===selectedOrderId)||orders[0];
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Invoice #${o.id}</title><style>body{font-family:Inter,sans-serif;padding:40px;color:#0f172a}h1{font-size:22px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #e2e8f0;padding:10px;text-align:left;font-size:14px}th{background:#f8fafc}.total{font-weight:800;font-size:16px}</style></head><body>
+  <h1>Walk with Regi — Invoice #${o.id}</h1><p>Customer: ${o.customer} (${o.email})<br> Date: ${new Date().toLocaleString()}<br> Status: ${o.status}</p>
+  <table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>${o.items.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>$${i.price.toFixed(2)}</td><td>$${(i.qty*i.price).toFixed(2)}</td></tr>`).join('')}<tr><td colspan="3" class="total">Total</td><td class="total">$${o.total.toFixed(2)}</td></tr></table><p style="margin-top:30px;font-size:12px;color:#64748b">Thank you for shopping with Regi! • walkwithregi.co</p></body></html>`);
+  w.document.close(); w.focus(); w.print();
+}
+
+// PRODUCTS RENDER
+function renderProducts(){
+  const grid=document.getElementById('productGrid');
+  const listBody=document.getElementById('productListBody');
+  const q=document.getElementById('productSearch').value.toLowerCase();
+  const filtered=products.filter(p=> !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  document.getElementById('productCount').textContent=filtered.length;
+  document.getElementById('statSkus').textContent=products.length*4;
+  grid.innerHTML=filtered.map(p=>{
+    const low=p.stock<10;
+    const critical=p.stock<5;
+    return `<div class="bg-white dark:bg-slate-800 rounded-2xl border ${critical?'border-red-200 dark:border-red-900/40':'border-slate-200/60 dark:border-slate-700'} overflow-hidden hover:shadow-lg transition group">
+      <div class="relative h-[180px] bg-slate-100 dark:bg-slate-900 overflow-hidden">
+        <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+        <span class="absolute top-3 left-3 text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/90 backdrop-blur border border-slate-200">${p.cat}</span>
+        ${critical?'<span class="absolute top-3 right-3 text-[11px] font-bold px-2 py-1 rounded-full bg-red-500 text-white">CRITICAL</span>':low?'<span class="absolute top-3 right-3 text-[11px] font-bold px-2 py-1 rounded-full bg-amber-500 text-white">LOW STOCK</span>':''}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
+      </div>
+      <div class="p-4">
+        <h4 class="font-bold leading-tight line-clamp-1">${p.name}</h4>
+        <p class="text-xs text-slate-500 font-mono mt-1">${p.sku}</p>
+        <p class="text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed">${p.desc}</p>
+        <div class="flex items-end justify-between mt-4">
+          <div><p class="text-lg font-extrabold">$${p.price.toFixed(2)}</p><p class="text-xs ${low?'text-amber-600 font-bold':'text-slate-500'}">${p.stock} in stock</p></div>
+          <div class="flex gap-1.5">
+            <button onclick="editProduct(${p.id})" class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 grid place-items-center hover:bg-slate-50 dark:hover:bg-slate-700"><i class="ri-edit-line text-sm"></i></button>
+            <button onclick="deleteProduct(${p.id})" class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 grid place-items-center hover:bg-red-50 hover:text-red-600 hover:border-red-200"><i class="ri-delete-bin-line text-sm"></i></button>
+          </div>
+        </div>
+        <div class="mt-3 w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden"><div class="h-full ${critical?'bg-red-500':low?'bg-amber-500':'bg-emerald-500'}" style="width:${Math.min(100, p.stock)}%"></div></div>
+      </div>
+    </div>`
+  }).join('');
+  if(listBody) listBody.innerHTML=filtered.map(p=> `<tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30"><td class="px-6 py-3"><div class="flex items-center gap-3"><img src="${p.img}" class="w-10 h-10 rounded-lg object-cover"><div><p class="font-semibold">${p.name}</p><p class="text-xs text-slate-500">${p.cat}</p></div></div></td><td class="px-2 py-3 font-mono text-xs">${p.sku}</td><td class="px-2 py-3 font-bold">$${p.price.toFixed(2)}</td><td class="px-2 py-3"><span class="px-2 py-1 rounded-full text-xs font-bold ${p.stock<5?'bg-red-100 text-red-700':p.stock<10?'bg-amber-100 text-amber-700':'bg-emerald-100 text-emerald-700'}">${p.stock} units</span></td><td class="px-6 py-3 text-right"><button onclick="editProduct(${p.id})" class="text-sm font-semibold text-[#0FB5B1] mr-3">Edit</button><button onclick="deleteProduct(${p.id})" class="text-sm font-semibold text-red-500">Delete</button></td></tr>`).join('');
+}
+document.getElementById('productSearch').addEventListener('input', renderProducts);
+document.getElementById('gridViewBtn').onclick=()=>{
+  document.getElementById('productGrid').classList.remove('hidden');
+  document.getElementById('productList').classList.add('hidden');
+  document.getElementById('gridViewBtn').className='w-8 h-8 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center';
+  document.getElementById('listViewBtn').className='w-8 h-8 rounded-full flex items-center justify-center text-slate-500';
+}
+document.getElementById('listViewBtn').onclick=()=>{
+  document.getElementById('productGrid').classList.add('hidden');
+  document.getElementById('productList').classList.remove('hidden');
+  document.getElementById('listViewBtn').className='w-8 h-8 rounded-full bg-white dark:bg-slate-800 shadow flex items-center justify-center';
+  document.getElementById('gridViewBtn').className='w-8 h-8 rounded-full flex items-center justify-center text-slate-500';
+}
+
+// Product modal logic
+const productModal=document.getElementById('productModal');
+function openProductModal(){
+  editingProductId=null;
+  uploadedImages=[];
+  document.getElementById('productModalTitle').textContent='Add New Product';
+  document.getElementById('productForm').reset();
+  document.getElementById('previewGrid').innerHTML='';
+  productModal.classList.remove('hidden');
+}
+function editProduct(id){
+  const p=products.find(x=>x.id===id);
+  if(!p) return;
+  editingProductId=id;
+  document.getElementById('productModalTitle').textContent='Edit Product';
+  const f=document.getElementById('productForm');
+  f.name.value=p.name; f.sku.value=p.sku; f.price.value=p.price; f.stock.value=p.stock; f.desc.value=p.desc;
+  uploadedImages=[p.img];
+  renderPreviews();
+  productModal.classList.remove('hidden');
+}
+function deleteProduct(id){
+  if(confirm('Delete this product?')){ products=products.filter(p=>p.id!==id); renderProducts(); toast('Product removed','success'); }
+}
+document.getElementById('openProductModal').onclick=openProductModal;
+document.getElementById('closeProductModal').onclick=()=>productModal.classList.add('hidden');
+document.getElementById('cancelProduct').onclick=()=>productModal.classList.add('hidden');
+document.getElementById('productModalBackdrop').onclick=()=>productModal.classList.add('hidden');
+
+document.getElementById('productForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const data={ name:fd.get('name'), sku:fd.get('sku'), price:parseFloat(fd.get('price')), stock:parseInt(fd.get('stock')), desc:fd.get('desc')||'New arrival at Regi\'s store.', cat:'Leashes', img: uploadedImages[0]||`https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&q=80` };
+  if(editingProductId){
+    const idx=products.findIndex(p=>p.id===editingProductId);
+    products[idx]={...products[idx], ...data};
+    toast('Product updated successfully');
+  }else{
+    products.unshift({id:Date.now(), ...data});
+    toast('Product added to storefront ✨');
+  }
+  productModal.classList.add('hidden');
+  renderProducts();
+});
+
+// drag & drop
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+const previewGrid=document.getElementById('previewGrid');
+dropZone.onclick=()=>fileInput.click();
+dropZone.addEventListener('dragover',e=>{e.preventDefault(); dropZone.classList.add('border-[#FF6B35]','bg-orange-50')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('border-[#FF6B35]','bg-orange-50'));
+dropZone.addEventListener('drop',e=>{
+  e.preventDefault(); dropZone.classList.remove('border-[#FF6B35]','bg-orange-50');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change',()=>handleFiles(fileInput.files));
+function handleFiles(files){
+  Array.from(files).slice(0,6-uploadedImages.length).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{ uploadedImages.push(e.target.result); renderPreviews(); };
+    reader.readAsDataURL(file);
+  });
+}
+function renderPreviews(){
+  previewGrid.innerHTML=uploadedImages.map((src,i)=>`
+    <div class="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100">
+      <img src="${src}" class="w-full h-20 object-cover">
+      <button type="button" onclick="uploadedImages.splice(${i},1);renderPreviews()" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-slate-900 text-white grid place-items-center text-xs opacity-90 hover:bg-red-500"><i class="ri-close-line"></i></button>
+      ${i===0?'<span class="absolute bottom-1 left-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-white">COVER</span>':''}
+    </div>
+  `).join('');
+  if(uploadedImages.length>0){
+    dropZone.innerHTML=`<p class="text-sm font-semibold text-emerald-600 flex items-center justify-center gap-2"><i class="ri-checkbox-circle-line"></i> ${uploadedImages.length} image(s) ready</p><p class="text-xs text-slate-500 mt-1">Click or drop to add more</p>`;
+  }
+}
+
+// CHARTS
+function initCharts(){
+  const ctx=document.getElementById('salesChart');
+  if(!ctx) return;
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets:[
+        {label:'This week', data:[2100,3400,2800,4200,3800,5200,6100], borderColor:'#FF6B35', backgroundColor:'rgba(255,107,53,0.08)', tension:0.4, fill:true, pointRadius:0, borderWidth:2.5},
+        {label:'Last week', data:[1800,2600,3200,3000,3400,4000,4800], borderColor:'#E2E8F0', backgroundColor:'transparent', tension:0.4, borderDash:[6,6], pointRadius:0, borderWidth:2}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{backgroundColor:'#0B0F1A', titleFont:{weight:'700'}, padding:10, cornerRadius:12}},
+      scales:{
+        x:{grid:{display:false}, ticks:{color:'#94A3B8', font:{size:11, weight:600}}},
+        y:{grid:{color:'rgba(148,163,184,0.12)'}, ticks:{color:'#94A3B8', font:{size:11}}, border:{display:false}}
+      }
+    }
+  });
+
+  const c2=document.getElementById('customerChart');
+  if(c2) new Chart(c2, {
+    type:'bar',
+    data:{
+      labels:['Week 1','Week 2','Week 3','Week 4'],
+      datasets:[
+        {label:'New', data:[42,38,52,42], backgroundColor:'#FF6B35', borderRadius:8, barThickness:14},
+        {label:'Returning', data:[68,72,64,78], backgroundColor:'#0FB5B1', borderRadius:8, barThickness:14}
+      ]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{color:'#94A3B8'}}, y:{grid:{color:'rgba(148,163,184,0.12)'}, ticks:{color:'#94A3B8'}}}}
+  });
+
+  const c3=document.getElementById('breedChart');
+  if(c3) new Chart(c3, {
+    type:'doughnut',
+    data:{labels:['Labrador','Golden','Frenchie','Others'], datasets:[{data:[32,24,18,26], backgroundColor:['#FF6B35','#0FB5B1','#94A3B8','#E2E8F0'], borderWidth:0, hoverOffset:6}]},
+    options:{responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{legend:{display:false}}}
+  });
+}
+
+// top customers
+function renderTopCustomers(){
+  const el=document.getElementById('topCustomers');
+  if(!el) return;
+  const customers=[
+    {name:'Emma Wilson', img:'https://i.pravatar.cc/100?img=5', spend:342, orders:12},
+    {name:'James Carter', img:'https://i.pravatar.cc/100?img=14', spend:289, orders:9},
+    {name:'Sofia Reyes', img:'https://i.pravatar.cc/100?img=9', spend:256, orders:8},
+  ];
+  el.innerHTML=customers.map((c,i)=>`
+    <div class="flex items-center gap-3 p-2.5 rounded-xl ${i===0?'bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-900/20':''}">
+      <img src="${c.img}" class="w-9 h-9 rounded-full">
+      <div class="flex-1"><p class="text-sm font-bold leading-none">${c.name}</p><p class="text-xs text-slate-500">${c.orders} orders</p></div>
+      <span class="text-sm font-extrabold">$${c.spend}</span>
+    </div>
+  `).join('');
+}
+
+// live order simulation
+function simulateLiveOrder(){
+  const names=['Lucas Gray','Chloe Adams','Mason Hill','Zoe Bennett','Harper Lee'];
+  const itemsPool=[{name:"Trail Leash - Sunset", price:42},{name:"Paw Balm", price:18},{name:"Biscuit Box", price:28},{name:"Harness - Midnight", price:68}];
+  setInterval(()=>{
+    if(Math.random()>0.6){
+      const item=itemsPool[Math.floor(Math.random()*itemsPool.length)];
+      const qty=Math.ceil(Math.random()*2);
+      const newOrder={
+        id: String(38493 + Math.floor(Math.random()*900)),
+        customer: names[Math.floor(Math.random()*names.length)],
+        avatar: `https://i.pravatar.cc/100?img=${Math.floor(Math.random()*30)+10}`,
+        email: 'live@walkwithregi.co',
+        time:'now',
+        ts: Date.now(),
+        items:[{name:item.name, qty, price:item.price}],
+        total: qty*item.price,
+        status:'Pending'
+      };
+      orders.unshift(newOrder);
+      renderOrders();
+      toast(`🔔 New live order #${newOrder.id} — ${newOrder.customer} • $${newOrder.total.toFixed(2)}`);
+    }
+  }, 15000);
+}
+
+// init
+renderOrders();
+renderProducts();
+renderTopCustomers();
+initCharts();
+simulateLiveOrder();
+
+// chart range toggle (mock)
+document.getElementById('chartRange')?.addEventListener('change', e=>{
+  toast(`Switched to ${e.target.value} view`);
+});
+
+// close dropdowns on scroll
+document.querySelector('main').addEventListener('scroll',()=>{
+  document.querySelectorAll('[id^="status-"]').forEach(e=>e.classList.add('hidden'));
+});
+</script>
+</body>
+</html>
